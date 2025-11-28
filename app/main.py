@@ -38,11 +38,20 @@ class CameraSimulator:
             print(f"?? [SIMULATED] Event {self.event_count}: {lot_id}, delta={delta}") 
             return True 
 
-        # Convert to numbers for Supabase
+        # Convert lot names to NUMBERS (1, 2, 3, 4)
+        lot_number = {
+            "parking_north": 1,
+            "parking_south": 2, 
+            "parking_east": 3,
+            "parking_west": 4
+        }.get(lot_id, 1)  # Default to 1 if not found
+        
+        # Payload must match EXACTLY what Person A's function expects
         payload = {
-            "lot_id": int(lot_id.replace("parking_", "").replace("north", "1").replace("south", "2").replace("east", "3").replace("west", "4")), 
-            "delta": int(delta)
+            "lot_id": lot_number,  # MUST be number (1,2,3,4)
+            "delta": delta         # MUST be number (-1 or 1)
         }
+        
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.supabase_key}"
@@ -57,7 +66,7 @@ class CameraSimulator:
             )
             
             if response.status_code == 200:
-                print(f"SUCCESS: Event {self.event_count}: {lot_id} delta={delta}")
+                print(f"SUCCESS: Event {self.event_count}: lot_{lot_number} delta={delta}")
                 return True
             else:
                 print(f"ERROR: HTTP {response.status_code}: {response.text}")
