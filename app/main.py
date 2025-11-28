@@ -4,26 +4,10 @@ import random
 import os 
 import sys 
 from datetime import datetime 
-from flask import Flask
-import threading
 
-print("CAN Camera Simulator - Background Worker with Health Check") 
+print("CAN Camera Simulator - Simple Background Worker") 
 print("Running in TEST MODE") 
 print("Press Ctrl+C to stop") 
-
-# Create Flask app for health checks
-app = Flask(__name__)
-simulator = None
-
-@app.route('/')
-def health_check():
-    if simulator:
-        return {'status': 'healthy', 'events': simulator.event_count}
-    return {'status': 'starting'}
-
-@app.route('/health')
-def health():
-    return 'OK', 200
 
 class CameraSimulator: 
     def __init__(self): 
@@ -44,12 +28,11 @@ class CameraSimulator:
             "parking_south": 2, 
             "parking_east": 3,
             "parking_west": 4
-        }.get(lot_id, 1)  # Default to 1 if not found
+        }.get(lot_id, 1)
         
-        # Payload must match EXACTLY what Person A's function expects
         payload = {
-            "lot_id": lot_number,  # MUST be number (1,2,3,4)
-            "delta": delta         # MUST be number (-1 or 1)
+            "lot_id": lot_number,
+            "delta": delta
         }
         
         headers = {
@@ -78,7 +61,6 @@ class CameraSimulator:
 
     def run(self): 
         print("Starting simulation...") 
-
         try: 
             while True: 
                 wait_time = random.uniform(30, 60) 
@@ -97,16 +79,6 @@ class CameraSimulator:
         except KeyboardInterrupt: 
             print(f"STOPPED: Simulation ended. Total events: {self.event_count}") 
 
-def run_flask():
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 10000)))
-
 if __name__ == "__main__": 
-    # Start the simulator
     simulator = CameraSimulator()
-    
-    # Start Flask in a separate thread (for health checks)
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
-    
-    # Run the main simulation
     simulator.run()
