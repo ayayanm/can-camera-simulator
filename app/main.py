@@ -38,32 +38,42 @@ class CameraSimulator:
             print(f"?? [SIMULATED] Event {self.event_count}: {lot_id}, delta={delta}") 
             return True 
 
-        try: 
-            payload = {"lot_id": lot_id, "delta": delta} 
-            headers = { 
-                "Content-Type": "application/json", 
-                "Authorization": f"Bearer {self.supabase_key}" 
-            } 
-
-            response = self.session.post(self.supabase_url, json=payload, headers=headers, timeout=10) 
-
-            if response.status_code == 200: 
-                print(f"? Real Event {self.event_count}: {lot_id} delta={delta}") 
-                return True 
-            else: 
-                print(f"HTTP Error {response.status_code}") 
-            return False 
-
-        except Exception as e: 
-            print(f"? Request failed: {e}") 
-            return False 
+        # Convert to numbers for Supabase
+        payload = {
+            "lot_id": int(lot_id.replace("parking_", "").replace("north", "1").replace("south", "2").replace("east", "3").replace("west", "4")), 
+            "delta": int(delta)
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.supabase_key}"
+        }
+        
+        try:
+            response = self.session.post(
+                self.supabase_url,
+                json=payload,
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                print(f"SUCCESS: Event {self.event_count}: {lot_id} delta={delta}")
+                return True
+            else:
+                print(f"ERROR: HTTP {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"ERROR: Request failed: {e}")
+            return False
 
     def run(self): 
         print("Starting simulation...") 
 
         try: 
             while True: 
-                wait_time = random.uniform(3, 8) 
+                wait_time = random.uniform(30, 60) 
+                print(f"WAITING: {wait_time:.1f} seconds until next event...")
                 time.sleep(wait_time) 
 
                 lot_id = random.choice(self.parking_lots) 
@@ -73,10 +83,10 @@ class CameraSimulator:
                     self.event_count += 1 
 
                 if self.event_count % 5 == 0: 
-                    print(f" Total events: {self.event_count}") 
+                    print(f"STATUS: Total REAL events sent: {self.event_count}") 
 
         except KeyboardInterrupt: 
-            print(f"\n Simulation stopped. Total events: {self.event_count}") 
+            print(f"STOPPED: Simulation ended. Total events: {self.event_count}") 
 
 def run_flask():
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 10000)))
