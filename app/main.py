@@ -5,7 +5,7 @@ import os
 import sys 
 from datetime import datetime 
 
-print("CAN Camera Simulator - Simple Background Worker") 
+print("CAN Camera Simulator - Background Worker") 
 print("Running in TEST MODE") 
 print("Press Ctrl+C to stop") 
 
@@ -15,23 +15,17 @@ class CameraSimulator:
         self.supabase_key = os.getenv('SUPABASE_KEY', 'TEST_MODE') 
         self.session = requests.Session() 
         self.event_count = 0 
-        self.parking_lots = ["parking_north", "parking_south", "parking_east", "parking_west"] 
+        # Use ACTUAL lot IDs from Person A's database: 1, 2, 3
+        self.parking_lots = [1, 2, 3]
 
     def send_parking_event(self, lot_id, delta): 
         if self.supabase_url == 'TEST_MODE': 
-            print(f"?? [SIMULATED] Event {self.event_count}: {lot_id}, delta={delta}") 
+            print(f"?? [SIMULATED] Event {self.event_count}: lot_{lot_id}, delta={delta}") 
             return True 
 
-        # Convert lot names to NUMBERS (1, 2, 3, 4)
-        lot_number = {
-            "parking_north": 1,
-            "parking_south": 2, 
-            "parking_east": 3,
-            "parking_west": 4
-        }.get(lot_id, 1)
-        
+        # Use lot_id directly (already 1, 2, or 3 from Person A's database)
         payload = {
-            "lot_id": lot_number,
+            "lot_id": lot_id,  # Already the correct number
             "delta": delta
         }
         
@@ -49,7 +43,7 @@ class CameraSimulator:
             )
             
             if response.status_code == 200:
-                print(f"SUCCESS: Event {self.event_count}: lot_{lot_number} delta={delta}")
+                print(f"SUCCESS: Event {self.event_count}: lot_{lot_id} delta={delta}")
                 return True
             else:
                 print(f"ERROR: HTTP {response.status_code}: {response.text}")
