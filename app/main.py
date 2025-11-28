@@ -23,11 +23,16 @@ class CameraSimulator:
             print(f"?? [SIMULATED] Event {self.event_count}: lot_{lot_id}, delta={delta}") 
             return True 
 
-        # Use lot_id directly (already 1, 2, or 3 from Person A's database)
+        # DEBUG: Print what we're about to send
+        print(f"DEBUG: Sending - lot_id: {lot_id} (type: {type(lot_id)}), delta: {delta} (type: {type(delta)})")
+        
         payload = {
-            "lot_id": lot_id,  # Already the correct number
+            "lot_id": lot_id,
             "delta": delta
         }
+        
+        print(f"DEBUG: Payload: {payload}")
+        print(f"DEBUG: Payload JSON: {repr(payload)}")
         
         headers = {
             "Content-Type": "application/json",
